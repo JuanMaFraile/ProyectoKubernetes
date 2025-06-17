@@ -1,0 +1,8 @@
+Se usa el puerto 31111
+Nombre de la imagen santiadi/grupojava
+
+- Para validad que el chart este funcionando se puede hacer con heml lint .
+- Para desplegar el microservicio se hace con helm install microservicio . (el path de la carpeta helm)
+- Para ver los servicio se utiliza kubectl get svc y para los pods kubectl get pods
+
+
