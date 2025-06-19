@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: proyectokubernetes # Debe coincidir con ${IMAGE_NAME}
+  namespace: default      # Debe coincidir con ${K8S_NAMESPACE}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: proyectokubernetes
+  template:
+    metadata:
+      labels:
+        app: proyectokubernetes
+    spec:
+      containers:
+      - name: proyectokubernetes # Debe coincidir con ${IMAGE_NAME}
+        image: your-docker-registry/juanmafraile/proyectokubernetes:latest # La imagen inicial. Se actualizará con 'kubectl set image'
+        ports:
+        - containerPort: 8080
