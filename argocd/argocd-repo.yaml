@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: argocd-repo-credentials
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  type: git
+  url: https://github.com/JuanMaFraile/ProyectoKubernetes.git
+  username: your-github-username
+  password: your-github-token
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-repo
+  namespace: argocd
+data:
+  url: https://github.com/JuanMaFraile/ProyectoKubernetes.git 
