@@ -19,6 +19,10 @@ pipeline {
         // Reemplaza 'kubernetes-credentials' con el ID de tu credencial de Kubernetes en Jenkins
         KUBERNETES_CREDENTIAL_ID = 'kubernetes-kubeconfig-id' // ID de tu credencial Kubeconfig (tipo Secret File)
         // O si usas un ServiceAccount Token: 'kubernetes-serviceaccount-token-id' (tipo Secret Text)
+        
+        // Variables para ArgoCD
+        ARGOCD_SERVER = 'argocd-server.argocd.svc.cluster.local'
+        ARGOCD_APP_NAME = 'proyecto-kubernetes-app'
     }
 
     stages {
@@ -112,6 +116,51 @@ pipeline {
                 }
             }
         }
+
+        stage('Trigger ArgoCD Sync') {
+            steps {
+                script {
+                    echo "🚀 Triggering ArgoCD sync for application: ${ARGOCD_APP_NAME}"
+                    
+                    // Trigger ArgoCD sync via kubectl
+                    withCredentials([file(credentialsId: KUBERNETES_CREDENTIAL_ID, variable: 'KUBECONFIG_FILE')]) {
+                        sh """
+                            export KUBECONFIG=${KUBECONFIG_FILE}
+                            
+                            # Trigger sync for development environment
+                            kubectl patch application ${ARGOCD_APP_NAME} -n argocd --type='merge' -p='{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true}}}}'
+                            
+                            # Force sync
+                            kubectl patch application ${ARGOCD_APP_NAME} -n argocd --type='merge' -p='{"metadata":{"annotations":{"argocd.argoproj.io/trigger":"manual"}}}'
+                            
+                            echo "✅ ArgoCD sync triggered successfully"
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Verify ArgoCD Sync') {
+            steps {
+                script {
+                    echo "🔍 Verifying ArgoCD sync status..."
+                    
+                    withCredentials([file(credentialsId: KUBERNETES_CREDENTIAL_ID, variable: 'KUBECONFIG_FILE')]) {
+                        sh """
+                            export KUBECONFIG=${KUBECONFIG_FILE}
+                            
+                            # Wait for sync to complete
+                            kubectl wait --for=condition=Synced application/${ARGOCD_APP_NAME} -n argocd --timeout=300s
+                            
+                            # Get sync status
+                            kubectl get application ${ARGOCD_APP_NAME} -n argocd -o jsonpath='{.status.sync.status}'
+                            
+                            echo "✅ ArgoCD sync verification completed"
+                        """
+                    }
+                }
+            }
+        }
     }
 
     post {
@@ -121,6 +170,7 @@ pipeline {
         }
         success {
             echo '¡Despliegue completado correctamente!'
+            echo '🚀 ArgoCD ha reconocido la acción de CD y sincronizado la aplicación'
         }
         failure {
             echo '¡El pipeline falló! Revisa los logs.'

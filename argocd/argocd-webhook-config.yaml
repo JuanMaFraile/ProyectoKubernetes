@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-webhook-config
+  namespace: argocd
+data:
+  # Configuración de webhook para GitHub
+  webhook.github: |
+    {
+      "url": "https://argocd-server.argocd.svc.cluster.local/api/webhook",
+      "events": ["push", "pull_request"],
+      "content_type": "json"
+    }
+  
+  # Configuración de webhook para Jenkins
+  webhook.jenkins: |
+    {
+      "url": "https://argocd-server.argocd.svc.cluster.local/api/webhook",
+      "events": ["build_success", "build_failure"],
+      "content_type": "json"
+    }
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: argocd-webhook-service
+  namespace: argocd
+spec:
+  selector:
+    app.kubernetes.io/name: argocd-server
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: ClusterIP 

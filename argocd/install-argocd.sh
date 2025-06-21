@@ -42,6 +42,11 @@ kubectl apply -f argocd-install.yaml
 echo "⏳ Esperando que ArgoCD esté listo..."
 kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
 
+# Configurar webhooks y notificaciones
+echo "🔔 Configurando webhooks y notificaciones..."
+kubectl apply -f argocd-webhook-config.yaml
+kubectl apply -f argocd-notifications.yaml
+
 # Configurar repositorio
 echo "📚 Configurando repositorio Git..."
 kubectl apply -f argocd-repo.yaml
@@ -49,6 +54,14 @@ kubectl apply -f argocd-repo.yaml
 # Desplegar aplicación
 echo "🚀 Desplegando aplicación..."
 kubectl apply -f argocd-application.yaml
+
+# Configurar webhook de GitHub (opcional)
+echo "🔗 Configurando webhook de GitHub..."
+echo "Para configurar el webhook de GitHub, ve a:"
+echo "https://github.com/JuanMaFraile/ProyectoKubernetes/settings/hooks"
+echo "Y agrega un webhook con la URL:"
+echo "https://argocd-server.argocd.svc.cluster.local/api/webhook"
+echo "Eventos: push, pull_request"
 
 echo "✅ Instalación completada!"
 echo ""
@@ -64,4 +77,10 @@ echo "   kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath=\"
 echo ""
 echo "📊 Para ver el estado de la aplicación:"
 echo "   kubectl get application -n argocd"
-echo "   kubectl get pods -n default -l app=proyecto-kubernetes" 
+echo "   kubectl get pods -n default -l app=proyecto-kubernetes"
+echo ""
+echo "🚀 CD Actions configuradas:"
+echo "   - Webhooks para GitHub y Jenkins"
+echo "   - Notificaciones Slack/Email"
+echo "   - Trigger automático desde Jenkins pipeline"
+echo "   - Auto-sync con reconocimiento de cambios" 

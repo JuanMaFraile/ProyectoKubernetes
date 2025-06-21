@@ -4,7 +4,17 @@ metadata:
   name: proyecto-kubernetes-prod
   namespace: argocd
   finalizers:
-    - resources-finalizer.argocd.argoproj.io
+    - resources-finalizer.argocd.argocd.argoproj.io
+  annotations:
+    # Configurar notificaciones para diferentes eventos
+    notifications.argoproj.io/subscribe.on-sync-succeeded.slack: '#deployments-prod'
+    notifications.argoproj.io/subscribe.on-sync-failed.slack: '#deployments-prod'
+    notifications.argoproj.io/subscribe.on-health-degraded.slack: '#deployments-prod'
+    notifications.argoproj.io/subscribe.on-deployment-detected.slack: '#deployments-prod'
+    
+    # Webhook triggers para CD en producción
+    argocd.argoproj.io/sync-options: Prune=true
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   source:
@@ -32,6 +42,13 @@ spec:
     automated:
       prune: true
       selfHeal: true
+      # Configurar triggers para CD en producción
+      syncOptions:
+        - CreateNamespace=true
+        - PrunePropagationPolicy=foreground
+        - PruneLast=true
+        - RespectIgnoreDifferences=true
+    # Configurar webhook triggers
     syncOptions:
       - CreateNamespace=true
       - PrunePropagationPolicy=foreground
